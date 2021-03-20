@@ -36,7 +36,7 @@ class engine:
             if pieces[piece].col != color:
                 moves = pieces[piece].get_take_moves(board)
                 for move_ in moves:
-                    if board.board[move_].pt == "k" and board.board[move_].col == -color:
+                    if board.board[move_].pt == "k" and board.board[move_].col == color:
                         return True
         return False
 
