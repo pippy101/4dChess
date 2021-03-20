@@ -1,0 +1,136 @@
+import numpy as np
+from pieces import rook, bishop, queen, king, knight, pawn
+from board import board_, h_board_
+from time import sleep
+
+###     NOTE:      ###
+###  (y,x,\/,>)    ###
+###  x is knight   ###
+
+piece_dict = {"p": pawn, "x": knight, "k": king, "q": queen, "b": bishop, "r": rook}
+#coord conversion
+def coord_trans_t(pos):
+    return (pos[1]+pos[3]*2, pos[0]+pos[2]*2)
+
+def coord_trans_f(pos):
+    return (int(np.ceil((pos[1]/2)-np.floor(pos[1]/2))), int(np.ceil((pos[0]/2)-np.floor(pos[0]/2))),
+            int(np.floor(pos[1]/2)), int(np.floor(pos[0]/2)))
+
+class engine:
+    def __init__(self, board, pieces):
+        self.pieces = pieces
+        self.board = board
+        self.taken = []
+
+    def update_board(self):
+        self.board.board = np.full((2,2,4,4), self.board.empty_square)
+        for piece in list(self.pieces):
+            if self.pieces[piece].state:
+                self.board.place_piece(self.pieces[piece])
+            else:
+                if not self.pieces[piece] in self.taken:
+                    self.taken.append(self.pieces[piece])
+
+    def check_ver(self, color, pieces, board):
+        for piece in list(pieces):
+            if pieces[piece].col != color:
+                moves = pieces[piece].get_take_moves(board)
+                for move_ in moves:
+                    if board.board[move_].pt == "k":
+                        return True
+        return False
+
+class match:
+    def __init__(self):
+        self.pieces = {"1br": rook(-1, (0,0,0,0), 1), "2br": rook(-1, (0,1,0,3), 2),
+                       "1wr": rook(1, (1,0,3,0), 1), "2wr": rook(1, (1,1,3,3), 2),
+                       "1bb": bishop(-1, (0,0,0,1), 1), "2bb": bishop(-1, (0,1,0,2), 2),
+                       "1wb": bishop(1, (1,0,3,1), 1), "2wb": bishop(1, (1,1,3,2), 2),
+                       "1bq": queen(-1, (0,0,0,2), 1), "1wq": queen(1, (1,1,3,1), 1),
+                       "1bk": king(-1, (0,1,0,1), 1), "1wk": king(1, (1,0,3,2), 1),
+                       "1bx": knight(-1, (0,1,0,0), 1), "2bx": knight(-1, (0,0,0,3), 2),
+                       "1wx": knight(1, (1,1,3,0), 1), "2wx": knight(1, (1,0,3,3), 2)}
+
+        #making pawns:
+        for color in [-1, 1]:
+            for i in range(0,8):
+                if color == 1:
+                    self.pieces[str(str(i+1)+"wp")] = pawn(1, coord_trans_f((i,6)), i+1)
+                if color == -1:
+                    self.pieces[str(str(i+1)+"bp")] = pawn(-1, coord_trans_f((i,1)), i+1)
+
+        self.game = engine(board_(), self.pieces)
+        self.game.update_board()
+        self.turn_n = 0
+        #[IS WHITE IN CHECK, IS BLACK IN CHECK]
+        self.check = [False, False]
+        self.over = False
+
+    def h_check_ver(self, color, piece_pos, new_pos):
+        h_pieces = {}
+        for piece in list(self.pieces):
+            h_pieces[self.pieces[piece].code] = piece_dict[self.pieces[piece].pt](self.pieces[piece].col, self.pieces[piece].pos, self.pieces[piece].num)
+        h_board = h_board_(h_pieces)
+        h_pieces[h_board.board[piece_pos].code].pos = new_pos
+        if h_board.board[new_pos].col == -h_pieces[h_board.board[piece_pos].code].col:
+            h_board.board[new_pos].state = False
+        h_board.update(h_pieces)
+        return self.game.check_ver(color, pieces = h_pieces, board = h_board)
+
+    def select(self,col,col_n, piece_pos_xy):
+        #self.move = input(col + "'s Piece: ")
+        #self.piece_pos_xy = tuple([int(i)-1 for i in self.move.split(" ")])
+        self.piece_pos = coord_trans_f(piece_pos_xy)
+        if self.game.board.board[self.piece_pos].code != "...":
+            if self.pieces[self.game.board.board[self.piece_pos].code].col == col_n:
+                return self.piece_pos
+            else:
+                print("Piece selected is the wrong color")
+                return None
+        else:
+            print("Square selected is empty")
+            return None
+
+    def legal(self, col, col_n, piece_pos):
+        #self.move = input(col + "'s Move: ")
+        #self.new_pos_xy = tuple([int(i)-1 for i in self.move.split(" ")])
+        self.new_pos = coord_trans_f(piece_pos)
+        print(self.game.board.board[self.new_pos])
+        print(self.new_pos)
+        if self.pieces[self.game.board.board[self.piece_pos].code].legal(self.new_pos, self.game.board):
+            return self.new_pos
+        else:
+            print("Illegal Move")
+            return None
+
+    def turn(self, pos):
+        self.pieces[self.game.board.board[self.piece_pos].code].move(pos, self.game.board)
+        self.game.update_board()
+
+"""if __name__ == "__main__":
+    game = match()
+    print(np.array(game.game.board.projection()))
+    #game loop
+    while True:
+        while 1:
+            pp = game.select("w", 1)
+            if pp != None:
+                np_ = game.legal("w", 1, pp)
+                if np_ != None:
+                    break
+
+        game.turn(np_)
+        print(game.game.board.projection())
+        if game.game.check_ver(-1, game.game.pieces, game.game.board):
+            print("Black is in Check")
+        while 1:
+            pp = game.select("b", -1)
+            if pp != None:
+                np_ = game.legal("b", -1, pp)
+                if np_ != None:
+                    break
+        game.turn(np_)
+        print(game.game.board.projection())
+        if game.game.check_ver(1, game.game.pieces, game.game.board):
+            print("White is in Check")
+"""
