@@ -35,6 +35,17 @@ class h_board_:
                 self.board[tuple(pieces[piece].pos)] = pieces[piece]
 
     def update(self, pieces):
+        self.board = np.full((2,2,4,4), self.empty_square)
         for piece in list(pieces):
             if pieces[piece].state:
                 self.board[tuple(pieces[piece].pos)] = pieces[piece]
+
+    def projection(self):
+        self.proj = np.full((8,8), '...')
+        for x in range(2):
+            for y in range(2):
+                for z in range(4):
+                    for w in range(4):
+                        self.proj[x + 2 * z, y + 2 * w] = self.board[x, y, z, w].code
+
+        return self.proj

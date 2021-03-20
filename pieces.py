@@ -2,8 +2,8 @@ import numpy as np
 from board import board_
 import pygame
 
-size = width, height = 800, 1200
-board_size = 800
+size = width, height = 820, 640
+board_size = 640
 board_start = (height - board_size)/2
 square_size = int(board_size/8)
 
@@ -16,6 +16,7 @@ def coord_trans_t(pos):
 
 class rook:
     def __init__(self, col, pos, num):
+        self.points = 5
         self.num = num
         #white is 1; black is -1
         self.col = col
@@ -117,6 +118,7 @@ class rook:
 
 class bishop:
     def __init__(self, col, pos, num):
+        self.points = 3
         self.num = num
         #white is 1; black is -1
         self.col = col
@@ -258,6 +260,7 @@ class bishop:
 
 class queen:
     def __init__(self, col, pos, num):
+        self.points = 9
         self.num = num
         #white is 1; black is -1
         self.col = col
@@ -425,6 +428,7 @@ class queen:
 
 class king:
     def __init__(self, col, pos, num):
+        self.points = 1
         self.num = num
         #white is 1; black is -1
         self.col = col
@@ -591,6 +595,7 @@ class king:
 
 class knight:
     def __init__(self, col, pos, num):
+        self.points = 3
         self.dim_lim = (2,2,4,4)
         self.num = num
         #white is 1; black is -1
@@ -682,6 +687,7 @@ class knight:
 
 class pawn:
     def __init__(self, col, pos, num):
+        self.points = 1
         self.dim_lim = (2,2,4,4)
         self.num = num
         #white is 1; black is -1

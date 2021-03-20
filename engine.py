@@ -36,7 +36,7 @@ class engine:
             if pieces[piece].col != color:
                 moves = pieces[piece].get_take_moves(board)
                 for move_ in moves:
-                    if board.board[move_].pt == "k":
+                    if board.board[move_].pt == "k" and board.board[move_].col == -color:
                         return True
         return False
 
@@ -70,16 +70,17 @@ class match:
         h_pieces = {}
         for piece in list(self.pieces):
             h_pieces[self.pieces[piece].code] = piece_dict[self.pieces[piece].pt](self.pieces[piece].col, self.pieces[piece].pos, self.pieces[piece].num)
+
         h_board = h_board_(h_pieces)
-        h_pieces[h_board.board[piece_pos].code].pos = new_pos
-        if h_board.board[new_pos].col == -h_pieces[h_board.board[piece_pos].code].col:
-            h_board.board[new_pos].state = False
+        h_pieces[h_board.board[piece_pos].code].move(new_pos, h_board)
         h_board.update(h_pieces)
+        print(h_board.projection())
         return self.game.check_ver(color, pieces = h_pieces, board = h_board)
 
     def select(self,col,col_n, piece_pos_xy):
-        #self.move = input(col + "'s Piece: ")
-        #self.piece_pos_xy = tuple([int(i)-1 for i in self.move.split(" ")])
+        if not piece_pos_xy[0]<8:
+            print("Out of board bounds")
+            return None
         self.piece_pos = coord_trans_f(piece_pos_xy)
         if self.game.board.board[self.piece_pos].code != "...":
             if self.pieces[self.game.board.board[self.piece_pos].code].col == col_n:
@@ -92,13 +93,13 @@ class match:
             return None
 
     def legal(self, col, col_n, piece_pos):
-        #self.move = input(col + "'s Move: ")
-        #self.new_pos_xy = tuple([int(i)-1 for i in self.move.split(" ")])
         self.new_pos = coord_trans_f(piece_pos)
-        print(self.game.board.board[self.new_pos])
-        print(self.new_pos)
         if self.pieces[self.game.board.board[self.piece_pos].code].legal(self.new_pos, self.game.board):
-            return self.new_pos
+            if not self.h_check_ver(col_n, self.piece_pos, self.new_pos):
+                return self.new_pos
+            else:
+                print("Move = Check")
+                return None
         else:
             print("Illegal Move")
             return None
@@ -106,31 +107,3 @@ class match:
     def turn(self, pos):
         self.pieces[self.game.board.board[self.piece_pos].code].move(pos, self.game.board)
         self.game.update_board()
-
-"""if __name__ == "__main__":
-    game = match()
-    print(np.array(game.game.board.projection()))
-    #game loop
-    while True:
-        while 1:
-            pp = game.select("w", 1)
-            if pp != None:
-                np_ = game.legal("w", 1, pp)
-                if np_ != None:
-                    break
-
-        game.turn(np_)
-        print(game.game.board.projection())
-        if game.game.check_ver(-1, game.game.pieces, game.game.board):
-            print("Black is in Check")
-        while 1:
-            pp = game.select("b", -1)
-            if pp != None:
-                np_ = game.legal("b", -1, pp)
-                if np_ != None:
-                    break
-        game.turn(np_)
-        print(game.game.board.projection())
-        if game.game.check_ver(1, game.game.pieces, game.game.board):
-            print("White is in Check")
-"""
