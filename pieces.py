@@ -39,32 +39,6 @@ class rook:
         self.image = pygame.transform.scale(pygame.image.load("piece_img/"+self.type+".png"), (int(0.85*square_size), int(0.85*square_size)))
         self.rect = self.image.get_rect(center=cord_pos(coord_trans_t(self.pos)))
 
-    def get_take_moves(self, board):
-
-        self.x_mov_u = list([self.pos[0]+i, self.pos[1], self.pos[2], self.pos[3]] for i in range(1, 2-self.pos[0]))
-        self.y_mov_u = list([self.pos[0], self.pos[1]+i, self.pos[2], self.pos[3]] for i in range(1, 2-self.pos[1]))
-        self.z_mov_u = list([self.pos[0], self.pos[1], self.pos[2]+i, self.pos[3]] for i in range(1, 4-self.pos[2]))
-        self.w_mov_u = list([self.pos[0], self.pos[1], self.pos[2], self.pos[3]+i] for i in range(1, 4-self.pos[3]))
-        #down (decreasing)
-        self.x_mov_d = list([self.pos[0]-i, self.pos[1], self.pos[2], self.pos[3]] for i in range(1, self.pos[0]+1))
-        self.y_mov_d = list([self.pos[0], self.pos[1]-i, self.pos[2], self.pos[3]] for i in range(1, self.pos[1]+1))
-        self.z_mov_d = list([self.pos[0], self.pos[1], self.pos[2]-i, self.pos[3]] for i in range(1, self.pos[2]+1))
-        self.w_mov_d = list([self.pos[0], self.pos[1], self.pos[2], self.pos[3]-i] for i in range(1, self.pos[3]+1))
-        #pos_moves as an array (without factoring in collision)
-        self.pos_mov = [self.x_mov_u, self.y_mov_u, self.z_mov_u, self.w_mov_u,
-                        self.x_mov_d, self.y_mov_d, self.z_mov_d, self.w_mov_d]
-
-        self.take_mov = []
-        for direction in self.pos_mov:
-            for position in direction:
-                if board.board[tuple(position)].col == 0-self.col:
-                    self.take_mov.append(tuple(position))
-                    break
-                elif board.board[tuple(position)].col == self.col:
-                    break
-
-        return self.take_mov
-
     #"get possible moves"
     def get_pos_moves(self, board):
         #this is rly ugly and im sorry
@@ -96,6 +70,16 @@ class rook:
                     break
 
         return self.leg_mov
+
+    def get_take_moves(self, board):
+        self.pos_mov = self.get_pos_moves(board)
+
+        self.take_mov = []
+        for mov_ in self.pos_mov:
+            if board.board[mov_].col == 0-self.col:
+                self.take_mov.append(mov_)
+
+        return self.take_mov
 
     def is_taken(self, n_pos, board):
 
@@ -141,55 +125,6 @@ class bishop:
         self.image = pygame.transform.scale(pygame.image.load("piece_img/"+self.type+".png"), (int(0.9*square_size), int(0.9*square_size)))
         self.rect = self.image.get_rect(center=cord_pos(coord_trans_t(self.pos)))
 
-    def get_take_moves(self, board):
-        #this is rly ugly and im sorry
-        #muchachos stinky
-        #pos moves for all 2 dimensional diagonals
-        self.xy_mov_u = list([self.pos[0]+i, self.pos[1]+i, self.pos[2], self.pos[3]] for i in range(1, min([2 - self.pos[0], 2 - self.pos[1]])))
-        self.xz_mov_u = list([self.pos[0]+i, self.pos[1], self.pos[2]+i, self.pos[3]] for i in range(1, min([2 - self.pos[0], 4 - self.pos[2]])))
-        self.xw_mov_u = list([self.pos[0]+i, self.pos[1], self.pos[2], self.pos[3]+i] for i in range(1, min([2 - self.pos[0], 4 - self.pos[3]])))
-        self.yz_mov_u = list([self.pos[0], self.pos[1]+i, self.pos[2]+i, self.pos[3]] for i in range(1, min([2 - self.pos[1], 4 - self.pos[2]])))
-        self.yw_mov_u = list([self.pos[0], self.pos[1]+i, self.pos[2], self.pos[3]+i] for i in range(1, min([2 - self.pos[1], 4 - self.pos[3]])))
-        self.zw_mov_u = list([self.pos[0], self.pos[1], self.pos[2]+i, self.pos[3]+i] for i in range(1, min([4 - self.pos[2], 4 - self.pos[3]])))
-
-        self.xy_mov_ud = list([self.pos[0]+i, self.pos[1]-i, self.pos[2], self.pos[3]] for i in range(1, min([2 - self.pos[0], self.pos[1]+1])))
-        self.xz_mov_ud = list([self.pos[0]+i, self.pos[1], self.pos[2]-i, self.pos[3]] for i in range(1, min([2 - self.pos[0], self.pos[2]+1])))
-        self.xw_mov_ud = list([self.pos[0]+i, self.pos[1], self.pos[2], self.pos[3]-i] for i in range(1, min([2 - self.pos[0], self.pos[3]+1])))
-        self.yz_mov_ud = list([self.pos[0], self.pos[1]+i, self.pos[2]-i, self.pos[3]] for i in range(1, min([2 - self.pos[1], self.pos[2]+1])))
-        self.yw_mov_ud = list([self.pos[0], self.pos[1]+i, self.pos[2], self.pos[3]-i] for i in range(1, min([2 - self.pos[1], self.pos[3]+1])))
-        self.zw_mov_ud = list([self.pos[0], self.pos[1], self.pos[2]+i, self.pos[3]-i] for i in range(1, min([4 - self.pos[2], self.pos[3]+1])))
-
-        self.xy_mov_du = list([self.pos[0]-i, self.pos[1]+i, self.pos[2], self.pos[3]] for i in range(1, min([self.pos[0]+1, 2 - self.pos[1]])))
-        self.xz_mov_du = list([self.pos[0]-i, self.pos[1], self.pos[2]+i, self.pos[3]] for i in range(1, min([self.pos[0]+1, 2 - self.pos[2]])))
-        self.xw_mov_du = list([self.pos[0]-i, self.pos[1], self.pos[2], self.pos[3]+i] for i in range(1, min([self.pos[0]+1, 2 - self.pos[3]])))
-        self.yz_mov_du = list([self.pos[0], self.pos[1]-i, self.pos[2]+i, self.pos[3]] for i in range(1, min([self.pos[1]+1, 4 - self.pos[2]])))
-        self.yw_mov_du = list([self.pos[0], self.pos[1]-i, self.pos[2], self.pos[3]+i] for i in range(1, min([self.pos[1]+1, 4 - self.pos[3]])))
-        self.zw_mov_du = list([self.pos[0], self.pos[1], self.pos[2]-i, self.pos[3]+i] for i in range(1, min([self.pos[2]+1, 4 - self.pos[3]])))
-
-        self.xy_mov_d = list([self.pos[0]-i, self.pos[1]-i, self.pos[2], self.pos[3]] for i in range(1, min([self.pos[0]+1, self.pos[1]+1])))
-        self.xz_mov_d = list([self.pos[0]-i, self.pos[1], self.pos[2]-i, self.pos[3]] for i in range(1, min([self.pos[0]+1, self.pos[2]+1])))
-        self.xw_mov_d = list([self.pos[0]-i, self.pos[1], self.pos[2], self.pos[3]-i] for i in range(1, min([self.pos[0]+1, self.pos[3]+1])))
-        self.yz_mov_d = list([self.pos[0], self.pos[1]-i, self.pos[2]-i, self.pos[3]] for i in range(1, min([self.pos[1]+1, self.pos[2]+1])))
-        self.yw_mov_d = list([self.pos[0], self.pos[1]-i, self.pos[2], self.pos[3]-i] for i in range(1, min([self.pos[1]+1, self.pos[3]+1])))
-        self.zw_mov_d = list([self.pos[0], self.pos[1], self.pos[2]-i, self.pos[3]-i] for i in range(1, min([self.pos[2]+1, self.pos[3]+1])))
-        #pos_moves as an array (without factoring in collision)
-        self.pos_mov = [self.xy_mov_u, self.xz_mov_u, self.xw_mov_u, self.yz_mov_u, self.yw_mov_u, self.zw_mov_u,
-                        self.xy_mov_d, self.xz_mov_d, self.xw_mov_d, self.yz_mov_d, self.yw_mov_d, self.zw_mov_d,
-                        self.xy_mov_ud, self.xz_mov_ud, self.xw_mov_ud, self.yz_mov_ud, self.yw_mov_ud, self.zw_mov_ud,
-                        self.xy_mov_du, self.xz_mov_du, self.xw_mov_du, self.yz_mov_du, self.yw_mov_du, self.zw_mov_du]
-        #legal moves
-        #ik appending sukk but like...
-        self.take_mov = []
-        for direction in self.pos_mov:
-            for position in direction:
-                if board.board[tuple(position)].col == 0-self.col:
-                    self.take_mov.append(tuple(position))
-                    break
-                elif board.board[tuple(position)].col == self.col:
-                    break
-
-        return self.take_mov
-
     def get_pos_moves(self, board):
         #this is rly ugly and im sorry
         #muchachos stinky
@@ -240,6 +175,16 @@ class bishop:
                     break
 
         return self.leg_mov
+
+    def get_take_moves(self, board):
+        self.pos_mov = self.get_pos_moves(board)
+
+        self.take_mov = []
+        for mov_ in self.pos_mov:
+            if board.board[mov_].col == 0-self.col:
+                self.take_mov.append(mov_)
+
+        return self.take_mov
 
     def is_taken(self, n_pos, board):
         if board.board[n_pos].col == -self.col:
@@ -283,68 +228,6 @@ class queen:
         self.image = pygame.transform.scale(pygame.image.load("piece_img/"+self.type+".png"), (int(0.9*square_size), int(0.9*square_size)))
         self.rect = self.image.get_rect(center=cord_pos(coord_trans_t(self.pos)))
 
-    def get_take_moves(self, board):
-        #this is rly ugly and im sorry
-        #muchachos stinky
-        #pos moves for all 2 dimensional diagonals
-        self.xy_mov_uu = list([self.pos[0]+i, self.pos[1]+i, self.pos[2], self.pos[3]] for i in range(1, min([2 - self.pos[0], 2 - self.pos[1]])))
-        self.xz_mov_uu = list([self.pos[0]+i, self.pos[1], self.pos[2]+i, self.pos[3]] for i in range(1, min([2 - self.pos[0], 4 - self.pos[2]])))
-        self.xw_mov_uu = list([self.pos[0]+i, self.pos[1], self.pos[2], self.pos[3]+i] for i in range(1, min([2 - self.pos[0], 4 - self.pos[3]])))
-        self.yz_mov_uu = list([self.pos[0], self.pos[1]+i, self.pos[2]+i, self.pos[3]] for i in range(1, min([2 - self.pos[1], 4 - self.pos[2]])))
-        self.yw_mov_uu = list([self.pos[0], self.pos[1]+i, self.pos[2], self.pos[3]+i] for i in range(1, min([2 - self.pos[1], 4 - self.pos[3]])))
-        self.zw_mov_uu = list([self.pos[0], self.pos[1], self.pos[2]+i, self.pos[3]+i] for i in range(1, min([4 - self.pos[2], 4 - self.pos[3]])))
-
-        self.xy_mov_ud = list([self.pos[0]+i, self.pos[1]-i, self.pos[2], self.pos[3]] for i in range(1, min([2 - self.pos[0], self.pos[1]+1])))
-        self.xz_mov_ud = list([self.pos[0]+i, self.pos[1], self.pos[2]-i, self.pos[3]] for i in range(1, min([2 - self.pos[0], self.pos[2]+1])))
-        self.xw_mov_ud = list([self.pos[0]+i, self.pos[1], self.pos[2], self.pos[3]-i] for i in range(1, min([2 - self.pos[0], self.pos[3]+1])))
-        self.yz_mov_ud = list([self.pos[0], self.pos[1]+i, self.pos[2]-i, self.pos[3]] for i in range(1, min([2 - self.pos[1], self.pos[2]+1])))
-        self.yw_mov_ud = list([self.pos[0], self.pos[1]+i, self.pos[2], self.pos[3]-i] for i in range(1, min([2 - self.pos[1], self.pos[3]+1])))
-        self.zw_mov_ud = list([self.pos[0], self.pos[1], self.pos[2]+i, self.pos[3]-i] for i in range(1, min([4 - self.pos[2], self.pos[3]+1])))
-
-        self.xy_mov_du = list([self.pos[0]-i, self.pos[1]+i, self.pos[2], self.pos[3]] for i in range(1, min([self.pos[0]+1, 2 - self.pos[1]])))
-        self.xz_mov_du = list([self.pos[0]-i, self.pos[1], self.pos[2]+i, self.pos[3]] for i in range(1, min([self.pos[0]+1, 2 - self.pos[2]])))
-        self.xw_mov_du = list([self.pos[0]-i, self.pos[1], self.pos[2], self.pos[3]+i] for i in range(1, min([self.pos[0]+1, 2 - self.pos[3]])))
-        self.yz_mov_du = list([self.pos[0], self.pos[1]-i, self.pos[2]+i, self.pos[3]] for i in range(1, min([self.pos[1]+1, 4 - self.pos[2]])))
-        self.yw_mov_du = list([self.pos[0], self.pos[1]-i, self.pos[2], self.pos[3]+i] for i in range(1, min([self.pos[1]+1, 4 - self.pos[3]])))
-        self.zw_mov_du = list([self.pos[0], self.pos[1], self.pos[2]-i, self.pos[3]+i] for i in range(1, min([self.pos[2]+1, 4 - self.pos[3]])))
-
-        self.xy_mov_dd = list([self.pos[0]-i, self.pos[1]-i, self.pos[2], self.pos[3]] for i in range(1, min([self.pos[0]+1, self.pos[1]+1])))
-        self.xz_mov_dd = list([self.pos[0]-i, self.pos[1], self.pos[2]-i, self.pos[3]] for i in range(1, min([self.pos[0]+1, self.pos[2]+1])))
-        self.xw_mov_dd = list([self.pos[0]-i, self.pos[1], self.pos[2], self.pos[3]-i] for i in range(1, min([self.pos[0]+1, self.pos[3]+1])))
-        self.yz_mov_dd = list([self.pos[0], self.pos[1]-i, self.pos[2]-i, self.pos[3]] for i in range(1, min([self.pos[1]+1, self.pos[2]+1])))
-        self.yw_mov_dd = list([self.pos[0], self.pos[1]-i, self.pos[2], self.pos[3]-i] for i in range(1, min([self.pos[1]+1, self.pos[3]+1])))
-        self.zw_mov_dd = list([self.pos[0], self.pos[1], self.pos[2]-i, self.pos[3]-i] for i in range(1, min([self.pos[2]+1, self.pos[3]+1])))
-
-        self.x_mov_u = list([self.pos[0]+i, self.pos[1], self.pos[2], self.pos[3]] for i in range(1, 2-self.pos[0]))
-        self.y_mov_u = list([self.pos[0], self.pos[1]+i, self.pos[2], self.pos[3]] for i in range(1, 2-self.pos[1]))
-        self.z_mov_u = list([self.pos[0], self.pos[1], self.pos[2]+i, self.pos[3]] for i in range(1, 4-self.pos[2]))
-        self.w_mov_u = list([self.pos[0], self.pos[1], self.pos[2], self.pos[3]+i] for i in range(1, 4-self.pos[3]))
-
-        self.x_mov_d = list([self.pos[0]-i, self.pos[1], self.pos[2], self.pos[3]] for i in range(1, self.pos[0]+1))
-        self.y_mov_d = list([self.pos[0], self.pos[1]-i, self.pos[2], self.pos[3]] for i in range(1, self.pos[1]+1))
-        self.z_mov_d = list([self.pos[0], self.pos[1], self.pos[2]-i, self.pos[3]] for i in range(1, self.pos[2]+1))
-        self.w_mov_d = list([self.pos[0], self.pos[1], self.pos[2], self.pos[3]-i] for i in range(1, self.pos[3]+1))
-
-        #pos_moves as an array (without factoring in collision)
-        self.pos_mov = [self.x_mov_u, self.y_mov_u, self.z_mov_u, self.w_mov_u,
-                        self.x_mov_d, self.y_mov_d, self.z_mov_d, self.w_mov_d,
-                        self.xy_mov_uu, self.xz_mov_uu, self.xw_mov_uu, self.yz_mov_uu, self.yw_mov_uu, self.zw_mov_uu,
-                        self.xy_mov_dd, self.xz_mov_dd, self.xw_mov_dd, self.yz_mov_dd, self.yw_mov_dd, self.zw_mov_dd,
-                        self.xy_mov_ud, self.xz_mov_ud, self.xw_mov_ud, self.yz_mov_ud, self.yw_mov_ud, self.zw_mov_ud,
-                        self.xy_mov_du, self.xz_mov_du, self.xw_mov_du, self.yz_mov_du, self.yw_mov_du, self.zw_mov_du]
-        #legal moves
-        #ik appending sukk but like...
-        self.take_mov = []
-        for direction in self.pos_mov:
-            for position in direction:
-                if board.board[tuple(position)].col == 0-self.col:
-                    self.take_mov.append(tuple(position))
-                    break
-                elif board.board[tuple(position)].col == self.col:
-                    break
-
-        return self.take_mov
-
     def get_pos_moves(self, board):
         #this is rly ugly and im sorry
         #muchachos stinky
@@ -409,6 +292,16 @@ class queen:
 
         return self.leg_mov
 
+    def get_take_moves(self, board):
+        self.pos_mov = self.get_pos_moves(board)
+
+        self.take_mov = []
+        for mov_ in self.pos_mov:
+            if board.board[mov_].col == 0-self.col:
+                self.take_mov.append(mov_)
+
+        return self.take_mov
+
     def is_taken(self, n_pos, board):
         if board.board[n_pos].col == -self.col:
             return True
@@ -450,67 +343,6 @@ class king:
         #piece image and rectangle
         self.image = pygame.transform.scale(pygame.image.load("piece_img/"+self.type+".png"), (int(0.9*square_size), int(0.9*square_size)))
         self.rect = self.image.get_rect(center=cord_pos(coord_trans_t(self.pos)))
-
-    def get_take_moves(self, board):
-        #this is rly ugly and im sorry
-        #pos moves for all direction in all dimensions
-        self.xy_mov_uu = list([self.pos[0]+i, self.pos[1]+i, self.pos[2], self.pos[3]] for i in range(1, min([2 - self.pos[0], 2 - self.pos[1], 2])))
-        self.xz_mov_uu = list([self.pos[0]+i, self.pos[1], self.pos[2]+i, self.pos[3]] for i in range(1, min([2 - self.pos[0], 4 - self.pos[2], 2])))
-        self.xw_mov_uu = list([self.pos[0]+i, self.pos[1], self.pos[2], self.pos[3]+i] for i in range(1, min([2 - self.pos[0], 4 - self.pos[3], 2])))
-        self.yz_mov_uu = list([self.pos[0], self.pos[1]+i, self.pos[2]+i, self.pos[3]] for i in range(1, min([2 - self.pos[1], 4 - self.pos[2], 2])))
-        self.yw_mov_uu = list([self.pos[0], self.pos[1]+i, self.pos[2], self.pos[3]+i] for i in range(1, min([2 - self.pos[1], 4 - self.pos[3], 2])))
-        self.zw_mov_uu = list([self.pos[0], self.pos[1], self.pos[2]+i, self.pos[3]+i] for i in range(1, min([4 - self.pos[2], 4 - self.pos[3], 2])))
-
-        self.xy_mov_ud = list([self.pos[0]+i, self.pos[1]-i, self.pos[2], self.pos[3]] for i in range(1, min([2 - self.pos[0], self.pos[1]+1, 2])))
-        self.xz_mov_ud = list([self.pos[0]+i, self.pos[1], self.pos[2]-i, self.pos[3]] for i in range(1, min([2 - self.pos[0], self.pos[2]+1, 2])))
-        self.xw_mov_ud = list([self.pos[0]+i, self.pos[1], self.pos[2], self.pos[3]-i] for i in range(1, min([2 - self.pos[0], self.pos[3]+1, 2])))
-        self.yz_mov_ud = list([self.pos[0], self.pos[1]+i, self.pos[2]-i, self.pos[3]] for i in range(1, min([2 - self.pos[1], self.pos[2]+1, 2])))
-        self.yw_mov_ud = list([self.pos[0], self.pos[1]+i, self.pos[2], self.pos[3]-i] for i in range(1, min([2 - self.pos[1], self.pos[3]+1, 2])))
-        self.zw_mov_ud = list([self.pos[0], self.pos[1], self.pos[2]+i, self.pos[3]-i] for i in range(1, min([4 - self.pos[2], self.pos[3]+1, 2])))
-
-        self.xy_mov_du = list([self.pos[0]-i, self.pos[1]+i, self.pos[2], self.pos[3]] for i in range(1, min([self.pos[0]+1, 2 - self.pos[1], 2])))
-        self.xz_mov_du = list([self.pos[0]-i, self.pos[1], self.pos[2]+i, self.pos[3]] for i in range(1, min([self.pos[0]+1, 2 - self.pos[2], 2])))
-        self.xw_mov_du = list([self.pos[0]-i, self.pos[1], self.pos[2], self.pos[3]+i] for i in range(1, min([self.pos[0]+1, 2 - self.pos[3], 2])))
-        self.yz_mov_du = list([self.pos[0], self.pos[1]-i, self.pos[2]+i, self.pos[3]] for i in range(1, min([self.pos[1]+1, 4 - self.pos[2], 2])))
-        self.yw_mov_du = list([self.pos[0], self.pos[1]-i, self.pos[2], self.pos[3]+i] for i in range(1, min([self.pos[1]+1, 4 - self.pos[3], 2])))
-        self.zw_mov_du = list([self.pos[0], self.pos[1], self.pos[2]-i, self.pos[3]+i] for i in range(1, min([self.pos[2]+1, 4 - self.pos[3], 2])))
-
-        self.xy_mov_dd = list([self.pos[0]-i, self.pos[1]-i, self.pos[2], self.pos[3]] for i in range(1, min([self.pos[0]+1, self.pos[1]+1, 2])))
-        self.xz_mov_dd = list([self.pos[0]-i, self.pos[1], self.pos[2]-i, self.pos[3]] for i in range(1, min([self.pos[0]+1, self.pos[2]+1, 2])))
-        self.xw_mov_dd = list([self.pos[0]-i, self.pos[1], self.pos[2], self.pos[3]-i] for i in range(1, min([self.pos[0]+1, self.pos[3]+1, 2])))
-        self.yz_mov_dd = list([self.pos[0], self.pos[1]-i, self.pos[2]-i, self.pos[3]] for i in range(1, min([self.pos[1]+1, self.pos[2]+1, 2])))
-        self.yw_mov_dd = list([self.pos[0], self.pos[1]-i, self.pos[2], self.pos[3]-i] for i in range(1, min([self.pos[1]+1, self.pos[3]+1, 2])))
-        self.zw_mov_dd = list([self.pos[0], self.pos[1], self.pos[2]-i, self.pos[3]-i] for i in range(1, min([self.pos[2]+1, self.pos[3]+1, 2])))
-
-        self.x_mov_u = list([self.pos[0]+i, self.pos[1], self.pos[2], self.pos[3]] for i in range(1, min(2-self.pos[0], 2)))
-        self.y_mov_u = list([self.pos[0], self.pos[1]+i, self.pos[2], self.pos[3]] for i in range(1, min(2-self.pos[1], 2)))
-        self.z_mov_u = list([self.pos[0], self.pos[1], self.pos[2]+i, self.pos[3]] for i in range(1, min(4-self.pos[2], 2)))
-        self.w_mov_u = list([self.pos[0], self.pos[1], self.pos[2], self.pos[3]+i] for i in range(1, min(4-self.pos[3], 2)))
-
-        self.x_mov_d = list([self.pos[0]-i, self.pos[1], self.pos[2], self.pos[3]] for i in range(1, min(self.pos[0]+1, 2)))
-        self.y_mov_d = list([self.pos[0], self.pos[1]-i, self.pos[2], self.pos[3]] for i in range(1, min(self.pos[1]+1, 2)))
-        self.z_mov_d = list([self.pos[0], self.pos[1], self.pos[2]-i, self.pos[3]] for i in range(1, min(self.pos[2]+1, 2)))
-        self.w_mov_d = list([self.pos[0], self.pos[1], self.pos[2], self.pos[3]-i] for i in range(1, min(self.pos[3]+1, 2)))
-        #pos_moves as an array (without factoring in collision)
-        self.pos_mov = [self.x_mov_u, self.y_mov_u, self.z_mov_u, self.w_mov_u,
-                        self.x_mov_d, self.y_mov_d, self.z_mov_d, self.w_mov_d,
-                        self.xy_mov_uu, self.xz_mov_uu, self.xw_mov_uu, self.yz_mov_uu, self.yw_mov_uu, self.zw_mov_uu,
-                        self.xy_mov_dd, self.xz_mov_dd, self.xw_mov_dd, self.yz_mov_dd, self.yw_mov_dd, self.zw_mov_dd,
-                        self.xy_mov_ud, self.xz_mov_ud, self.xw_mov_ud, self.yz_mov_ud, self.yw_mov_ud, self.zw_mov_ud,
-                        self.xy_mov_du, self.xz_mov_du, self.xw_mov_du, self.yz_mov_du, self.yw_mov_du, self.zw_mov_du]
-
-        #legal moves
-        #ik appending sukk but like...
-        self.take_mov = []
-        for direction in self.pos_mov:
-            for position in direction:
-                if board.board[tuple(position)].col == 0-self.col:
-                    self.take_mov.append(tuple(position))
-                    break
-                elif board.board[tuple(position)].col == self.col:
-                    break
-
-        return self.take_mov
 
     #"get possible moves"
     def get_pos_moves(self, board):
@@ -575,6 +407,16 @@ class king:
                     break
 
         return self.leg_mov
+
+    def get_take_moves(self, board):
+        self.pos_mov = self.get_pos_moves(board)
+
+        self.take_mov = []
+        for mov_ in self.pos_mov:
+            if board.board[mov_].col == 0-self.col:
+                self.take_mov.append(mov_)
+
+        return self.take_mov
 
     def is_taken(self, n_pos, board):
         if board.board[n_pos].col == -self.col:
@@ -619,30 +461,6 @@ class knight:
         self.image = pygame.transform.scale(pygame.image.load("piece_img/"+self.type+".png"), (int(0.9*square_size), int(0.9*square_size)))
         self.rect = self.image.get_rect(center=cord_pos(coord_trans_t(self.pos)))
 
-    def get_take_moves(self, board):
-        #legal moves
-        self.take_mov = []
-        #big dimension and direction
-        for dim in range(2,4):
-            #-1 down; 1 up
-            for dir in [-1,1]:
-                #test if move can be made for big dim and dir
-                if -1<self.pos[dim]+2*dir and self.pos[dim]+2*dir<4:
-                    #short dimension and direction
-                    for com_dim in range(0, 4):
-                        #(com_dim can not == dim)
-                        if com_dim != dim:
-                            for com_dir in [-1, 1]:
-                                self.mov = list(self.pos)
-                                self.mov[dim] = self.mov[dim]+2*dir
-                                self.mov[com_dim] = self.mov[com_dim]+com_dir
-                                #range test for small dim and dir (and collision test)
-                                if -1<self.pos[com_dim]+com_dir and self.pos[com_dim]+com_dir<self.dim_lim[com_dim] and board.board[tuple(self.mov)].col == 0-self.col:
-
-                                    self.take_mov.append(tuple(self.mov))
-
-        return self.take_mov
-
     #"get possible moves"
     def get_pos_moves(self, board):
         #legal moves
@@ -667,6 +485,16 @@ class knight:
                                     self.leg_mov.append(tuple(self.mov))
 
         return self.leg_mov
+
+    def get_take_moves(self, board):
+        self.pos_mov = self.get_pos_moves(board)
+
+        self.take_mov = []
+        for mov_ in self.pos_mov:
+            if board.board[mov_].col == 0-self.col:
+                self.take_mov.append(mov_)
+
+        return self.take_mov
 
     def is_taken(self, n_pos, board):
         if board.board[n_pos].col == -self.col:

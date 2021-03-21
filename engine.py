@@ -74,7 +74,6 @@ class match:
         h_board = h_board_(h_pieces)
         h_pieces[h_board.board[piece_pos].code].move(new_pos, h_board)
         h_board.update(h_pieces)
-        print(h_board.projection())
         return self.game.check_ver(color, pieces = h_pieces, board = h_board)
 
     def select(self,col,col_n, piece_pos_xy):
@@ -107,3 +106,7 @@ class match:
     def turn(self, pos):
         self.pieces[self.game.board.board[self.piece_pos].code].move(pos, self.game.board)
         self.game.update_board()
+        if self.game.check_ver(1, self.game.pieces, self.game.board):
+            print("White is in check")
+        if self.game.check_ver(-1, self.game.pieces, self.game.board):
+            print("Black is in check")
